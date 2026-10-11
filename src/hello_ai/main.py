@@ -4,6 +4,14 @@ from dotenv import load_dotenv
 from google import genai
 
 
+def ask_gemini(client, prompt):
+    response = client.models.generate_content(
+        model="gemini-3.8-flash",
+        contents=prompt,
+    )
+    return response.text
+
+
 def main():
     load_dotenv()
 
@@ -19,13 +27,10 @@ def main():
     print("Sending request to Gemini...", flush=True)
 
     try:
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents="Explain what an AI in one simple line.",
-        )
-
+        prompt = input("Enter your prompt: ")
+        response_text = ask_gemini(client, prompt)
         print("\nGemini response:")
-        print(response.text)
+        print(response_text)
 
     except Exception as error:
         print(
