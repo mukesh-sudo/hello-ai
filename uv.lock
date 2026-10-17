@@ -380,12 +380,14 @@ source = { editable = "." }
 dependencies = [
     { name = "google-genai" },
     { name = "python-dotenv" },
+    { name = "requests" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "google-genai", specifier = ">=2.29.0" },
     { name = "python-dotenv", specifier = ">=1.2.4" },
+    { name = "requests", specifier = ">=2.34.2" },
 ]
 
 [[package]]
