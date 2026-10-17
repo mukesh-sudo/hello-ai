@@ -1,6 +1,6 @@
 import pytest
 
-
+from hello_ai.main import main
 from unittest.mock import Mock, patch
 
 from hello_ai.main import ask_gemini, ask_ollama
@@ -62,3 +62,83 @@ def test_ask_gemini_returns_response_text():
         model="gemini-3.8-flash",
         contents="Capital of Germany?",
     )
+
+def test_main_defaults_to_qwen(monkeypatch):
+    inputs = iter(["", "Capital of Germany?"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch(
+        "hello_ai.main.ask_ollama",
+        return_value="Berlin",
+    ) as mock_ollama:
+        main()
+
+    mock_ollama.assert_called_once_with(
+        "Capital of Germany?",
+        "qwen3.5:4b",
+    )
+
+def test_main_selects_llama(monkeypatch):
+    inputs = iter(["2", "Capital of Germany?"])
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: next(inputs),
+    )
+
+    with patch(
+        "hello_ai.main.ask_ollama",
+        return_value="Berlin",
+    ) as mock_ollama:
+        main()
+
+    mock_ollama.assert_called_once_with(
+        "Capital of Germany?",
+        "llama3.2:3b",
+    )
+
+def test_main_selects_gemini(monkeypatch):
+    inputs = iter(["3", "Capital of Germany?"])
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: next(inputs),
+    )
+
+    with patch(
+        "hello_ai.main.ask_gemini",
+        return_value="Berlin",
+    ) as mock_gemini:
+        main()
+
+    mock_gemini.assert_called_once()
+    args, _ = mock_gemini.call_args
+
+    assert args[1] == "Capital of Germany?"
+
+def test_main_rejects_invalid_choice(monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "4")
+
+    with (
+        patch("hello_ai.main.ask_ollama") as mock_ollama,
+        patch("hello_ai.main.ask_gemini") as mock_gemini,
+    ):
+        main()
+
+    mock_ollama.assert_not_called()
+    mock_gemini.assert_not_called()
+
+
+def test_main_rejects_empty_prompt(monkeypatch):
+    inputs = iter(["1", ""])
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: next(inputs),
+    )
+
+    with (
+        patch("hello_ai.main.ask_ollama") as mock_ollama,
+        patch("hello_ai.main.ask_gemini") as mock_gemini,
+    ):
+        main()
+
+    mock_ollama.assert_not_called()
+    mock_gemini.assert_not_called()
